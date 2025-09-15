@@ -57,8 +57,15 @@
 # Archivo: xray_update_dynamic.ps1
 # DESCUBRE AUTOMÁTICAMENTE TODOS LOS TEST CASES Y ACTUALIZA EL EXECUTION EXISTENTE
 
-# 1. AUTENTICACIÓN XRAY
-$authBody = '{"client_id":"28C3EF2BB6434C249B23CB55475F9A6B","client_secret":"e11cc25433d1efcc22483b5eca38ce76fd67fd74e6cbc80c1e9c33a97a991cfc"}'
+# 1. CARGAR CONFIGURACIÓN CENTRALIZADA
+. .\config_clean.ps1
+
+# 2. AUTENTICACIÓN XRAY (USANDO CREDENCIALES CENTRALIZADAS)
+$authBody = @{
+    client_id = $XRAY_CLIENT_ID
+    client_secret = $XRAY_CLIENT_SECRET
+} | ConvertTo-Json
+
 $xrayToken = Invoke-RestMethod -Uri "https://xray.cloud.getxray.app/api/v1/authenticate" -Method Post -Body $authBody -ContentType "application/json"
 
 # 2. DESCUBRIMIENTO AUTOMÁTICO DESDE LA HISTORIA
