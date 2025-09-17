@@ -31,6 +31,7 @@
 
 ### 2. EJECUCIÓN DE TESTING
 
+- No crear nuevos scripts, mantener la ejecución de los scripts dentro del chat de github copilot
 - Ejecuta el script de automatización basado en descripciones de test cases en Jira
 - **⚠️ CRÍTICO - ADHERENCIA ESTRICTA**: Al momento de ejecutar cada caso de prueba, **CEÑIRSE EXACTAMENTE al paso a paso redactado en el caso de prueba de Jira**. NO agregar pasos adicionales, validaciones extra o funcionalidades que no estén específicamente descritas en el test case original.
 - Realiza testing end-to-end con Playwright:
@@ -38,6 +39,8 @@
   - **Browser Closure**: Los navegadores se cierran correctamente al final de cada test
   - Validaciones: Navegación, interacciones UI, comportamiento de modales
   - Captura de evidencias y validación de resultados
+  - La captura de evidencias colocalo dentro del comentario de Jira
+  - Adicionalmente para los comentarios, no colocar información de credenciales por seguridad
 
 ### 3. TRANSICIONES AUTOMÁTICAS EN JIRA
 
@@ -137,6 +140,8 @@ Write-Host "✅ TEST EXECUTION actualizado con $($ALL_TEST_CASES.Count) test cas
 - **SIEMPRE actualizar** el test execution que ya está asociado a la historia
 - **EJECUTAR `update_test_results.ps1`** después de la automatización Playwright
 - **Verificar** que TODOS los test cases encontrados cambien de "TO DO" a estado final en la tabla
+  - La captura de evidencias colocalo dentro del comentario de Jira
+  - Adicionalmente para los comentarios, no colocar información de credenciales por seguridad
 
 ---
 
@@ -172,6 +177,8 @@ Eres un **Automation Test Engineer** especializado en testing end-to-end con Pla
    - **Verificación**: Confirmar que el test execution muestre estado final correcto
    - Transicionar historia principal apropiadamente
    - Documentar completamente el proceso
+   - La captura de evidencias colocalo dentro del comentario de Jira
+   - Adicionalmente para los comentarios, no colocar información de credenciales por seguridad
 
 ### CONFIGURACIÓN ESPECÍFICA:
 
