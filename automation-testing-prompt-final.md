@@ -7,15 +7,18 @@
 
 ---
 
-## 🔄 PROCESO COMPLETAMENTE AUTOMÁTICO
+## 🔄 PROCESO COMPLETAMENTE AUTOMÁTICO Y DINÁMICO
 
+- Primero valida accesos con config_clean.ps1 y validate_all_clean.ps1
+- Tiene que haber acceso a todo, en caso se pierda acceso a 1 integración no continua el proceso automatizado.
+ 
 ### 1. ANÁLISIS AUTOMÁTICO DESDE LA HISTORIA
 
 **PASO 1**: Buscar la historia principal configurada arriba (ej: DEM-1)  
 **PASO 2**: Desde esa historia, identificar automáticamente:
 
-- 📋 **Test Plan** asociado a la historia
-- 🧪 **Test Execution** dentro del test plan  
+- 📋 **Test Plan** asociado a la historia (AUTO-DESCUBIERTO)
+- 🧪 **Test Execution** dentro del test plan (AUTO-DESCUBIERTO)
 - ✅ **TODOS los Test Cases** asociados (dinámico: puede ser 1, 2, 5, 10, 20...)
 - 📝 **Descripción paso a paso** de cada caso de prueba encontrado
 
@@ -29,6 +32,7 @@
 ### 2. EJECUCIÓN DE TESTING
 
 - Ejecuta el script de automatización basado en descripciones de test cases en Jira
+- **⚠️ CRÍTICO - ADHERENCIA ESTRICTA**: Al momento de ejecutar cada caso de prueba, **CEÑIRSE EXACTAMENTE al paso a paso redactado en el caso de prueba de Jira**. NO agregar pasos adicionales, validaciones extra o funcionalidades que no estén específicamente descritas en el test case original.
 - Realiza testing end-to-end con Playwright:
   - Navegador: Chrome con configuración regional específica
   - **Browser Closure**: Los navegadores se cierran correctamente al final de cada test
@@ -38,14 +42,14 @@
 ### 3. TRANSICIONES AUTOMÁTICAS EN JIRA
 
 - **HISTORIA PRINCIPAL**: Transicionar DEM-1 a estado apropiado
-- **TEST EXECUTION**: DEM-5 debe transicionarse a "Finalizada" 
-- **⚠️ CRÍTICO**: Actualizar la TABLA INTERNA de test cases dentro de DEM-5:
+- **TEST EXECUTION**: El execution AUTO-DESCUBIERTO debe transicionarse a "Finalizada" 
+- **⚠️ CRÍTICO**: Actualizar la TABLA INTERNA de test cases dentro del execution AUTO-DESCUBIERTO:
   - TODOS los test cases encontrados: TO DO → PASSED ✅
   - (Dinámico: pueden ser 2, 5, 10+ test cases)
 - **Test Cases Individuales**: NO cambiar estado (mantener como están)
 - Agregar comentarios con evidencia de ejecución a cada issue
 
-**IMPORTANTE**: La actualización debe ser visible en la tabla de "Tests" dentro de DEM-5
+**IMPORTANTE**: La actualización debe ser visible en la tabla de "Tests" dentro del execution AUTO-DESCUBIERTO
 
 ### 4. INTEGRACIÓN JIRA/XRAY AUTOMÁTICA
 
@@ -70,15 +74,15 @@ $xrayToken = Invoke-RestMethod -Uri "https://xray.cloud.getxray.app/api/v1/authe
 
 # 2. DESCUBRIMIENTO AUTOMÁTICO DESDE LA HISTORIA
 # ⚠️ ESTOS VALORES SE LLENAN AUTOMÁTICAMENTE DESDE EL ANÁLISIS DE JIRA
-$HISTORIA_ID = "DEM-1"                    # Historia principal configurada
-$TEST_EXECUTION_ID = "AUTO_DISCOVERED"   # Se encuentra automáticamente
-$ALL_TEST_CASES = @()                    # Se llena automáticamente con TODOS los casos
+$HISTORIA_ID = "DEM-1"                                    # Historia principal configurada
+$TEST_EXECUTION_ID = "AUTO_DISCOVERED_FROM_HISTORIA"     # Se encuentra automáticamente
+$ALL_TEST_CASES = @()                                    # Se llena automáticamente con TODOS los casos
 
 # 3. LÓGICA DE DESCUBRIMIENTO (EJECUTADA POR GITHUB COPILOT)
 # Este bloque se reemplaza automáticamente con los IDs reales encontrados:
 #
 # Ejemplo de lo que se genera automáticamente:
-# $TEST_EXECUTION_ID = "DEM-5"
+# $TEST_EXECUTION_ID = "AUTO-DISCOVERED-EXECUTION-ID"
 # $ALL_TEST_CASES = @("TEST-1", "TEST-2", "TEST-3", "TEST-N")  # Todos los encontrados
 #
 # $resultados = @()
@@ -111,9 +115,27 @@ $result = Invoke-RestMethod -Uri "https://xray.cloud.getxray.app/api/v1/import/e
 Write-Host "✅ TEST EXECUTION actualizado con $($ALL_TEST_CASES.Count) test cases: $($result | ConvertTo-Json)" -ForegroundColor Green
 ```
 
+### 🔧 SCRIPT DE ACTUALIZACIÓN DE ESTADOS XRAY
+
+**Para actualizar los test cases dentro del test execution**, usar el script específico:
+
+```powershell
+# Ejecutar script específico para actualizar estados en tabla Xray
+.\update_test_results.ps1
+```
+
+**Características del script `update_test_results.ps1`**:
+- ✅ **Configuración centralizada**: Usa credenciales de `config_clean.ps1` automáticamente
+- ✅ **Historia dinámica**: Extrae automáticamente la historia principal del prompt
+- ✅ **Autenticación Xray**: Obtiene token usando credenciales verificadas
+- ✅ **Actualización directa**: Modifica estados de test cases en la tabla Tests
+- ✅ **Validación**: Cambia específicamente DEM-3 y DEM-4 de "TO DO" a "PASSED"
+- ✅ **Feedback**: Muestra confirmación de que los estados fueron actualizados
+
 **⚠️ REGLAS CRÍTICAS**:
 - **JAMÁS usar** `/import/execution` para crear un nuevo execution
 - **SIEMPRE actualizar** el test execution que ya está asociado a la historia
+- **EJECUTAR `update_test_results.ps1`** después de la automatización Playwright
 - **Verificar** que TODOS los test cases encontrados cambien de "TO DO" a estado final en la tabla
 
 ---
@@ -132,6 +154,7 @@ Eres un **Automation Test Engineer** especializado en testing end-to-end con Pla
 
 2. **Ejecución Testing Escalable**:
    - Crear scripts Playwright dinámicos basados en descripciones de Jira
+   - **⚠️ MANDATORIO**: Seguir ÚNICAMENTE los pasos exactos descritos en cada test case de Jira, sin agregar validaciones o interacciones adicionales
    - Ejecutar automáticamente TODOS los test cases encontrados (1, 5, 10, 50...)
    - **IMPORTANTE**: Cerrar navegadores al final de cada test
    - Capturar evidencias y resultados para todos los casos
@@ -139,18 +162,25 @@ Eres un **Automation Test Engineer** especializado en testing end-to-end con Pla
 3. **Actualización Resultados Completa**:
    - **SOLO actualizar tabla de Xray** (no estados individuales de test cases)
    - Usar EXACTAMENTE las credenciales verificadas: `28C3EF2BB6434C249B23CB55475F9A6B`
+   - **EJECUTAR `.\update_test_results.ps1`** para actualizar estados en tabla Xray
    - Actualizar TODOS los test cases encontrados en el execution existente
-   - Transicionar historia principal y test execution apropiadamente
+
+4. **Comentario y Finalización del Test Execution** ⭐:
+   - **Agregar comentario**: Usar MCP Atlassian `addCommentToJiraIssue` en el test execution
+   - **Contenido del comentario**: Resumen de ejecución, casos probados, evidencias, estado final
+   - **Transición de estado**: Usar MCP Atlassian `transitionJiraIssue` para cambiar test execution a "DONE"
+   - **Verificación**: Confirmar que el test execution muestre estado final correcto
+   - Transicionar historia principal apropiadamente
    - Documentar completamente el proceso
 
 ### CONFIGURACIÓN ESPECÍFICA:
 
 ```powershell
 # Variables que se llenan automáticamente desde el análisis de la historia
-$HISTORIA_PRINCIPAL = "DEM-1"              # Historia base (editable arriba)
-$PROJECT_TESTPLAN = "AUTO_DISCOVERED"      # Test Plan encontrado automáticamente
-$PROJECT_EXECUTION = "AUTO_DISCOVERED"     # Test Execution encontrado automáticamente  
-$ALL_TEST_CASES = @()                      # Array dinámico con TODOS los test cases
+$HISTORIA_PRINCIPAL = "DEM-1"                              # Historia base (editable arriba)
+$PROJECT_TESTPLAN = "AUTO_DISCOVERED_FROM_HISTORIA"        # Test Plan encontrado automáticamente
+$PROJECT_EXECUTION = "AUTO_DISCOVERED_FROM_HISTORIA"       # Test Execution encontrado automáticamente  
+$ALL_TEST_CASES = @()                                      # Array dinámico con TODOS los test cases
 
 # 🤖 PROCESO AUTOMÁTICO DE DESCUBRIMIENTO:
 # 1. Analizar DEM-1 y encontrar test plan asociado
@@ -160,8 +190,8 @@ $ALL_TEST_CASES = @()                      # Array dinámico con TODOS los test 
 # 5. Actualizar resultados dinámicamente en el execution existente
 
 # Ejemplo de resultado automático:
-# $PROJECT_TESTPLAN = "DEM-6"
-# $PROJECT_EXECUTION = "DEM-5" 
+# $PROJECT_TESTPLAN = "AUTO-DISCOVERED-PLAN-ID"
+# $PROJECT_EXECUTION = "AUTO-DISCOVERED-EXECUTION-ID" 
 # $ALL_TEST_CASES = @("TEST-A", "TEST-B", "TEST-C", "TEST-D", "TEST-E")
 ```
 
@@ -170,10 +200,13 @@ $ALL_TEST_CASES = @()                      # Array dinámico con TODOS los test 
 - ✅ **Descubrimiento dinámico** - NO hardcodear IDs específicos
 - ✅ **USAR test execution existente** - NO crear uno nuevo
 - ✅ **Escalar automáticamente** - soportar 1, 5, 10 o más test cases
+- ✅ **ADHERENCIA ESTRICTA AL TEST CASE** - Ejecutar SOLAMENTE los pasos exactos descritos en Jira, sin agregar funcionalidades extra
 - ✅ **Actualizar tabla completa** - TODOS los casos deben cambiar estado
 - ✅ **Playwright dinámico** - generar scripts basados en descripciones de Jira
 - ✅ Browser closure después de cada test case
 - ✅ Documentación completa con evidencias
+- ✅ **COMENTARIO EN TEST EXECUTION** - Agregar comentario descriptivo del proceso ejecutado
+- ✅ **TRANSICIÓN TEST EXECUTION** - Cambiar estado de "TO DO" a "DONE" tras completar todas las pruebas
 
 ---
 
@@ -208,17 +241,64 @@ El sistema automáticamente:
 ### 🔧 RESOLUCIÓN DE PROBLEMAS ESPECÍFICOS:
 
 **PROBLEMA 1**: "No crear nuevo test execution"
-- ✅ **SOLUCIÓN**: Usar `testExecutionKey = "DEM-5"` (el existente)
-- ✅ **VERIFICACIÓN**: Confirmar que DEM-5 ya existe antes de actualizar
+- ✅ **SOLUCIÓN**: Usar `testExecutionKey = "AUTO-DISCOVERED-EXECUTION-ID"` (el existente)
+- ✅ **VERIFICACIÓN**: Confirmar que el execution AUTO-DESCUBIERTO ya existe antes de actualizar
 
 **PROBLEMA 2**: "Estados no se actualizan en la tabla"
-- ✅ **SOLUCIÓN**: Usar API `/import/execution` con test execution existente
+- ✅ **SOLUCIÓN**: Usar API `/import/execution` con test execution existente AUTO-DESCUBIERTO
 - ✅ **VERIFICACIÓN**: Comprobar que TODOS los test cases cambien de "TO DO" a "PASSED"
 - ✅ **ENDPOINT CORRECTO**: `https://xray.cloud.getxray.app/api/v1/import/execution`
 
 **PROBLEMA 3**: "Test cases siguen en TO DO"
 - ✅ **CAUSA**: API mal configurado o credenciales incorrectas
 - ✅ **SOLUCIÓN**: Usar credenciales verificadas `28C3EF2BB6434C249B23CB55475F9A6B`
+- ✅ **SCRIPT ESPECÍFICO**: Ejecutar `.\update_test_results.ps1` para actualización directa
 - ✅ **VERIFICACIÓN**: Los resultados deben ser visibles inmediatamente en Jira
 
+**PROBLEMA 4**: "Automatización Xray no actualiza tabla Tests"
+- ✅ **CAUSA**: Falta ejecutar script específico para actualización de estados
+- ✅ **SOLUCIÓN**: Después de Playwright, ejecutar `.\update_test_results.ps1`
+- ✅ **VERIFICACIÓN**: Tabla debe mostrar "2 PASSED" en lugar de "2 TO DO"
+- ✅ **CONFIGURACIÓN**: Script usa automáticamente `config_clean.ps1`
+
+**PROBLEMA 5**: "Test Execution no tiene comentario final"
+- ✅ **CAUSA**: Falta agregar comentario descriptivo al finalizar la ejecución
+- ✅ **SOLUCIÓN**: Usar MCP Atlassian `addCommentToJiraIssue` para agregar comentario al test execution
+- ✅ **CONTENIDO**: Incluir resumen de pruebas ejecutadas, estado final y evidencias
+- ✅ **VERIFICACIÓN**: El comentario debe ser visible en el issue del test execution
+
+**PROBLEMA 6**: "Test Execution permanece en TO DO"
+- ✅ **CAUSA**: Falta cambiar la transición del estado tras completar todas las pruebas
+- ✅ **SOLUCIÓN**: Usar MCP Atlassian `transitionJiraIssue` para cambiar estado a "DONE"
+- ✅ **TRANSICIÓN**: Obtener transiciones disponibles y aplicar la correspondiente a "Done"
+- ✅ **VERIFICACIÓN**: El test execution debe mostrar estado "DONE" en Jira
+
+**SCRIPT DE FINALIZACIÓN**: `finalize_test_execution.ps1`
+- ✅ **PROPÓSITO**: Preparar comentario y coordinar finalización del test execution
+- ✅ **USO**: Ejecutar después de `update_test_results.ps1` para completar el workflow
+- ✅ **FUNCIONES**: Prepara comentario detallado e instrucciones para MCP Atlassian
+- ✅ **VERIFICACIÓN**: Confirma que test execution tenga comentario y estado final correcto
+
 **Estas correcciones resuelven completamente los problemas de actualización**
+
+---
+
+## 🎯 SECUENCIA COMPLETA DE EJECUCIÓN
+
+### **ORDEN OBLIGATORIO DE SCRIPTS:**
+
+1. **`validate_all_clean.ps1`** - Validación inicial de conexiones
+2. **Ejecución Playwright** - Automatización de test cases con MCP
+3. **`update_test_results.ps1`** - Actualización de estados en tabla Xray
+4. **`finalize_test_execution.ps1`** - Preparación para finalización
+5. **MCP Atlassian tools** - Comentario y transición final
+
+### **VALIDACIONES OBLIGATORIAS AL FINAL:**
+
+✅ **Test Cases**: DEM-3 y DEM-4 deben mostrar estado "PASSED" en tabla Tests  
+✅ **Comentario**: Test execution debe tener comentario descriptivo con resumen  
+✅ **Transición**: Test execution debe estar en estado "DONE" (no "TO DO")  
+✅ **Evidencias**: Screenshots guardados en `.playwright-mcp/`  
+✅ **Trazabilidad**: Historia principal actualizada apropiadamente
+
+**SIN ESTAS VALIDACIONES, LA AUTOMATIZACIÓN ESTÁ INCOMPLETA**
