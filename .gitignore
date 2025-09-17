@@ -1,0 +1,19 @@
+# Node modules
+node_modules/
+
+# Playwright results
+test-results/
+.playwright-mcp/
+
+# Credenciales sensibles
+setup_credentials.ps1
+
+# VS Code settings
+.vscode/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
