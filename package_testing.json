@@ -1,0 +1,18 @@
+{
+  "name": "security-testing-scripts",
+  "version": "1.0.0",
+  "description": "Scripts automatizados para validación de vulnerabilidades de seguridad",
+  "main": "index.js",
+  "scripts": {
+    "test:xss": "node validate_xss_fix_DEM-16.js",
+    "test:validation": "node validate_input_validation_DEM-17.js", 
+    "test:password": "node validate_password_config_DEM-18.js",
+    "test:all": "npm run test:xss && npm run test:validation && npm run test:password"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "keywords": ["security", "testing", "playwright", "automation"],
+  "author": "Security Testing Automation",
+  "license": "MIT"
+}
