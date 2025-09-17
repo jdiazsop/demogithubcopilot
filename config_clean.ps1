@@ -22,7 +22,6 @@ $HISTORIA_PRINCIPAL = $null  # Se lee del automation-testing-prompt-final.md
 $TEST_EXECUTION = $null      # Se descubre automáticamente desde la historia
 
 # FUNCION PARA EXTRAER HISTORIA PRINCIPAL DEL ARCHIVO PROMPT
-# FUNCION PARA EXTRAER HISTORIA PRINCIPAL DEL ARCHIVO PROMPT
 function Get-HistoriaPrincipal {
     try {
         $promptContent = Get-Content "automation-testing-prompt-final.md" -Raw
