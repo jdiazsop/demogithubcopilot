@@ -1,53 +1,133 @@
 # 🔒 REPORTE COMPLETO DE SECURITY TESTING AUTOMATIZADO
 
-## 📊 RESUMEN EJECUTIVO
+## 📊 RESUMEN EJECUTIVO - SHIFT RIGHT TESTING
 
-**Fecha de Análisis**: 16 de Septiembre de 2025  
+**Fecha de Análisis**: 18 de Septiembre de 2025  
 **Web Objetivo**: https://qarmy.ar/webs-practicas-testing/  
 **Proyecto Jira**: DEM  
-**Metodología**: OWASP Top 10 + Playwright Automation  
+**Metodología**: OWASP Top 10 + Playwright Automation + Shift-Right Testing  
 **Herramientas**: MCP Atlassian, Playwright MCP, GitHub Copilot  
 
 ---
 
-## 🎯 RESULTADOS DEL ANÁLISIS
+## 🎯 RESULTADOS DEL ANÁLISIS SHIFT-RIGHT
 
-### **BUGS CREADOS AUTOMÁTICAMENTE:**
+### **VULNERABILIDAD CRÍTICA DETECTADA:**
+
+#### **DEM-51** - Security: CSRF Vulnerability 🔴 **HIGH**
+- **Tipo**: Cross-Site Request Forgery (CSRF)
+- **Severidad**: HIGH
+- **Estado**: ACTIVA en producción
+- **Test Case**: DEM-52 (Validación automatizada)
+
+#### Detalles técnicos:
+```json
+{
+  "vulnerability_type": "CSRF_Vulnerability", 
+  "affected_forms": [
+    {
+      "form_id": "form-1",
+      "action": "https://qarmy.ar/webs-practicas-testing/#wpcf7-f10225-o1",
+      "method": "POST",
+      "csrf_protection": false,
+      "inputs": ["your-name", "your-email", "submit"]
+    }
+  ],
+  "evidence": "2 formulario(s) sin token CSRF",
+  "timestamp": "2025-09-18T05:52:17.566Z"
+}
+```
+
+### **BUGS ANTERIORES (QARMY):**
 
 #### 1. **DEM-13** - Security: XSS Reflejado 🔴 **ALTA**
 - **Tipo**: Cross-Site Scripting (XSS) Reflejado
-- **Ubicación**: Formulario de suscripción
+- **Ubicación**: Formulario de suscripción (QARMY)
 - **Descripción**: Scripts maliciosos se reflejan sin sanitización
 - **Evidencia**: xss_vulnerability_evidence.png
 - **Test Case Asociado**: DEM-16
 
 #### 2. **DEM-14** - Security: Validación Insuficiente 🟡 **MEDIA**
 - **Tipo**: Input Validation Insufficient  
-- **Ubicación**: Campos de formulario
+- **Ubicación**: Campos de formulario (QARMY)
 - **Descripción**: Aceptación de datos maliciosos sin validación robusta
 - **Test Case Asociado**: DEM-17
 
 #### 3. **DEM-15** - Security: Información Sensible 🟡 **MEDIA**
 - **Tipo**: Information Disclosure
-- **Ubicación**: Console warnings
+- **Ubicación**: Console warnings (QARMY)
 - **Descripción**: Campos password mal configurados detectados
 - **Test Case Asociado**: DEM-18
+
+#### **HALLAZGOS ADICIONALES (Testing de Framework - DemoBlaze):**
+
+#### 4. **DEM-19** - Security: Cross-Site Scripting (XSS) 🔴 **ALTA**
+- **Tipo**: Cross-Site Scripting (XSS) en Contact Form
+- **Ubicación**: Formulario de contacto modal (DemoBlaze - testing framework)
+- **CVSS Score**: 7.2
+- **Descripción**: Inyección de scripts maliciosos sin sanitización adecuada
+- **Evidencia**: Payloads XSS aceptados en todos los campos del formulario
+- **Test Case Asociado**: DEM-22
+
+#### 5. **DEM-20** - Security: Authentication Issues 🟡 **MEDIA**
+- **Tipo**: Fallas de Autenticación e Inyección SQL  
+- **Ubicación**: Sistema de login (DemoBlaze - testing framework)
+- **CVSS Score**: 6.1
+- **Descripción**: Manejo inconsistente de errores y potenciales vulnerabilidades SQL
+- **Evidencia**: Respuesta "Wrong password" para payloads SQL injection
+- **Test Case Asociado**: DEM-23
+
+#### 6. **DEM-21** - Security: Insecure Direct Object References 🟡 **MEDIA**
+- **Tipo**: Referencias Directas a Objetos Inseguras (IDOR)
+- **Ubicación**: URLs de productos (DemoBlaze - testing framework)
+- **CVSS Score**: 5.3
+- **Descripción**: IDs predictibles permiten enumeración y acceso no autorizado
+- **Evidencia**: Manipulación de parámetros idp_ en URLs
+- **Test Case Asociado**: DEM-24
 
 ---
 
 ## 🧪 TEST CASES GENERADOS AUTOMÁTICAMENTE
 
+### **TEST CASES PRINCIPALES (QARMY):**
+
 ### **DEM-16** - Test: Validar corrección XSS Reflejado
 - **Objetivo**: Verificar sanitización de payloads XSS
 - **Script**: `validate_xss_fix_DEM-16.js`
 - **Cobertura**: 5 payloads XSS diferentes
+- **Bug Relacionado**: DEM-13
 
 ### **DEM-17** - Test: Validar corrección validación insuficiente  
 - **Objetivo**: Verificar validación robusta de entrada
 - **Script**: `validate_input_validation_DEM-17.js`
 - **Cobertura**: SQL injection, caracteres especiales, límites
+- **Bug Relacionado**: DEM-14
 
 ### **DEM-18** - Test: Validar corrección campos password
+- **Objetivo**: Verificar configuración segura de campos password
+- **Script**: `validate_password_config_DEM-18.js`
+- **Cobertura**: Console warnings, DOM inspection, credenciales
+- **Bug Relacionado**: DEM-15
+
+### **TEST CASES ADICIONALES (Framework Demo - DemoBlaze):**
+
+### **DEM-22** - Test: Validar corrección XSS en Contact Form
+- **Objetivo**: Verificar sanitización completa de payloads XSS en formulario de contacto
+- **Cobertura**: 5 tipos de payloads XSS (script tags, event handlers, DOM-based, SVG)
+- **Prioridad**: ALTA
+- **Bug Relacionado**: DEM-19
+
+### **DEM-23** - Test: Validar seguridad de autenticación
+- **Objetivo**: Verificar prevención de SQL injection y manejo seguro de errores
+- **Cobertura**: SQL injection, error message analysis, input sanitization
+- **Prioridad**: MEDIA
+- **Bug Relacionado**: DEM-20
+
+### **DEM-24** - Test: Validar control de acceso IDOR
+- **Objetivo**: Verificar controles de autorización en URLs de productos
+- **Cobertura**: Enumeración de IDs, manipulación de parámetros, control de acceso
+- **Prioridad**: MEDIA  
+- **Bug Relacionado**: DEM-21
 - **Objetivo**: Verificar configuración segura de campos password
 - **Script**: `validate_password_config_DEM-18.js`
 - **Cobertura**: Console warnings, DOM inspection, credenciales
